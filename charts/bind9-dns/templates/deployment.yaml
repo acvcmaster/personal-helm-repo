@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bind9-dns.fullname" . }}
+  labels:
+    {{- include "bind9-dns.labels" . | nindent 4 }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "bind9-dns.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bind9-dns.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          envFrom:
+          - configMapRef:
+              name: {{ include "bind9-dns.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - mountPath: /etc/bind
+            name: config
+          - mountPath: /var/lib/bind
+            name: records
+          - mountPath: /var/cache/bind
+            name: cache
+          ports:
+            - name: dns-tcp
+              containerPort: {{ .Values.service.tcpPort }}
+              protocol: TCP
+            - name: dns-udp
+              containerPort: {{ .Values.service.udpPort }}
+              protocol: UDP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+      volumes:
+        - hostPath:
+            path: {{ .Values.storage.config }}
+            type: ""
+          name: config
+        - hostPath:
+            path: {{ .Values.storage.records }}
+            type: ""
+          name: records
+        - emptyDir:
+            medium: Memory
+          name: cache

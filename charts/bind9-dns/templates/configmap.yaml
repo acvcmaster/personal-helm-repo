@@ -1,0 +1,10 @@
+# templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bind9-dns.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels: {{ include "bind9-dns.labels" . | nindent 4 }}
+data:
+  BIND9_USER: {{ .Values.environment.BIND9_USER }}
+  TZ: {{ .Values.environment.TZ }}

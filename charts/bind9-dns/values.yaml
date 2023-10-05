@@ -1,0 +1,33 @@
+# Default values for bind9-dns.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+namespace: ix-bind9
+
+image:
+  repository: ubuntu/bind9
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+podSecurityContext:
+  fsGroup: 568
+
+securityContext:
+  privileged: true
+
+service:
+  type: ClusterIP
+  clusterIP: 11.56.39.39
+  tcpPort: 53
+  udpPort: 53
+
+environment:
+  BIND9_USER: root
+  TZ: America/Sao_Paulo
+
+storage:
+  config: /mnt/standard/config/bind9/
+  records: /mnt/standard/config/bind9/records
